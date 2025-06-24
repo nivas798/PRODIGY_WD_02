@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stopwatch Pro - Precision Timer</title>
+    <meta name="description" content="Beautiful and precise stopwatch application with lap timing" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <style>
+        :root {
+            --primary: #4caf50;
+            --primary-dark: #388e3c;
+            --primary-light: #81c784;
+            --primary-lighter: #c8e6c9;
+            --secondary: #2196f3;
+            --danger: #f44336;
+            --warning: #ff9800;
+            --info: #00bcd4;
+            --purple: #9c27b0;
+            --white: #ffffff;
+            --dark: #1b5e20;
+            --darker: #0d3010;
+            --text-primary: rgba(255, 255, 255, 0.95);
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --text-tertiary: rgba(255, 255, 255, 0.5);
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --glass-highlight: rgba(255, 255, 255, 0.2);
+            --elevation-1: 0 1px 3px rgba(0, 0, 0, 0.12);
+            --elevation-2: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --elevation-3: 0 10px 15px rgba(0, 0, 0, 0.1);
+            --elevation-4: 0 20px 25px rgba(0, 0, 0, 0.1);
+            --elevation-5: 0 25px 50px rgba(0, 0, 0, 0.25);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            position: relative;
+            color: var(--text-primary);
+            background-color: var(--dark);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Modern Glassmorphism Background */
+        .background-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -3;
+            overflow: hidden;
+        }
+
+        .gradient-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
+        }
+
+        .glass-blur {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.3;
+        }
+
+        .glass-blur:nth-child(1) {
+            background: var(--primary);
+            top: -100px;
+            left: -100px;
+            animation: float 15s infinite alternate;
+        }
+
+        .glass-blur:nth-child(2) {
+            background: var(--secondary);
+            bottom: -100px;
+            right: -100px;
+            animation: float 18s infinite alternate-reverse;
+        }
+
+        .glass-blur:nth-child(3) {
+            background: var(--purple);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: pulse 12s infinite ease-in-out;
+        }
+
+        /* Floating Elements Animation */
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        .floating-element {
+            position: absolute;
+            background: var(--glass-highlight);
+            border-radius: 8px;
+            animation: float 15s infinite linear;
+            opacity: 0.1;
+            transform: rotate(45deg);
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0) translateX(0) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-50px) translateX(50px) rotate(180deg);
+            }
+            100% {
+                transform: translateY(0) translateX(100px) rotate(360deg);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.2);
+            }
+        }
+
+        /* Main Container */
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Modern Glass Card */
+        .stopwatch-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: var(--elevation-5);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            max-width: 480px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .stopwatch-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+            border-color: var(--glass-highlight);
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .clock-icon {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            padding: 12px;
+            border-radius: 12px;
+            box-shadow: var(--elevation-2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .clock-icon svg {
+            width: 24px;
+            height: 24px;
+            color: var(--white);
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--white);
+            margin: 0;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            font-weight: 400;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            opacity: 0.9;
+        }
+
+        .divider {
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+            border-radius: 2px;
+            margin: 0 auto 32px;
+            opacity: 0.8;
+        }
+
+        /* Time Display */
+        .time-display {
+            font-size: 64px;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            color: var(--white);
+            margin-bottom: 8px;
+            letter-spacing: -2px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .time-display.running {
+            color: var(--primary-light);
+            animation: pulse 2s infinite;
+        }
+
+        .status {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Buttons */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .secondary-controls {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .btn {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: var(--white);
+            box-shadow: var(--elevation-1);
+            min-width: 100px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--elevation-3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+            box-shadow: var(--elevation-1);
+        }
+
+        .btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .btn-start { 
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        }
+        .btn-pause { 
+            background: linear-gradient(135deg, var(--warning), #f57c00);
+        }
+        .btn-stop { 
+            background: linear-gradient(135deg, var(--danger), #d32f2f);
+        }
+        .btn-lap { 
+            background: linear-gradient(135deg, var(--secondary), #1976d2);
+        }
+        .btn-reset { 
+            background: linear-gradient(135deg, var(--purple), #7b1fa2);
+        }
+        .btn-history { 
+            background: linear-gradient(135deg, var(--info), #0097a7);
+        }
+
+        .btn:disabled {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-tertiary);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Lap Times */
+        .lap-times {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            box-shadow: var(--elevation-1);
+        }
+
+        .lap-times:hover {
+            border-color: var(--glass-highlight);
+        }
+
+        .lap-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--white);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .lap-title svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .lap-list {
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .lap-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: var(--glass-bg);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.4s ease;
+        }
+
+        .lap-item:hover {
+            background: var(--glass-highlight);
+            transform: translateX(2px);
+        }
+
+        .lap-number {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .lap-time {
+            color: var(--white);
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        /* Session History */
+        .session-history {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            box-shadow: var(--elevation-1);
+        }
+
+        .session-item {
+            background: var(--glass-bg);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+        }
+
+        .session-item:hover {
+            background: var(--glass-highlight);
+        }
+
+        .session-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .session-date {
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .session-duration {
+            color: var(--white);
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .session-laps {
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* About Toggle Button - Top Right */
+        .about-toggle {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 1000;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 12px 20px;
+            color: var(--white);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: var(--elevation-1);
+        }
+
+        .about-toggle:hover {
+            background: var(--glass-highlight);
+            transform: translateY(-2px);
+            box-shadow: var(--elevation-2);
+        }
+
+        .about-toggle svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* About Popup */
+        .about-popup {
+            position: fixed;
+            top: 80px;
+            right: 24px;
+            width: 360px;
+            max-width: calc(100vw - 48px);
+            background: var(--glass-bg);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 24px;
+            z-index: 999;
+            transform: translateY(-10px);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--elevation-5);
+        }
+
+        .about-popup.show {
+            transform: translateY(0);
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .about-popup h3 {
+            color: var(--white);
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .about-popup h3 svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .about-popup p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .about-popup ul {
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.6;
+            margin-left: 20px;
+            margin-bottom: 20px;
+        }
+
+        .about-popup li {
+            margin-bottom: 6px;
+            position: relative;
+        }
+
+        .about-popup li::before {
+            content: "•";
+            color: var(--primary-light);
+            position: absolute;
+            left: -16px;
+        }
+
+        .divider {
+            width: 100%;
+            height: 1px;
+            background: var(--glass-border);
+            margin: 16px 0;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .social-link {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: var(--glass-bg);
+            border-radius: 10px;
+            color: var(--white);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 1px solid var(--glass-border);
+        }
+
+        .social-link:hover {
+            background: var(--glass-highlight);
+            transform: translateY(-2px);
+            box-shadow: var(--elevation-1);
+        }
+
+        .social-link svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .github-link {
+            background: linear-gradient(135deg, #333, #555);
+        }
+
+        .instagram-link {
+            background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
+        }
+
+        .linkedin-link {
+            background: linear-gradient(135deg, #0077b5, #005885);
+        }
+
+        .profile-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .profile-pic {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 2px solid var(--glass-highlight);
+            object-fit: cover;
+        }
+
+        .profile-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .profile-name {
+            color: var(--white);
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .profile-title {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0%, 100% { 
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% { 
+                opacity: 0.8;
+                transform: scale(1.02);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Scrollbar Styling */
+        .lap-list::-webkit-scrollbar,
+        .session-history::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .lap-list::-webkit-scrollbar-track,
+        .session-history::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+        }
+
+        .lap-list::-webkit-scrollbar-thumb,
+        .session-history::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        .lap-list::-webkit-scrollbar-thumb:hover,
+        .session-history::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .stopwatch-card {
+                padding: 32px 24px;
+                margin: 16px;
+                border-radius: 20px;
+            }
+
+            .time-display {
+                font-size: 48px;
+            }
+
+            .title {
+                font-size: 24px;
+            }
+
+            .controls {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .secondary-controls {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .about-toggle {
+                top: 16px;
+                right: 16px;
+                font-size: 13px;
+                padding: 10px 16px;
+            }
+
+            .about-popup {
+                top: 70px;
+                right: 16px;
+                width: calc(100vw - 32px);
+                padding: 20px;
+            }
+        }
+
+        /* Utility Classes */
+        .hidden {
+            display: none !important;
+        }
+
+        .fade-in {
+            animation: fadeInUp 0.4s ease;
+        }
+    </style>
+</head>
+<body>
+    <!-- Modern Glass Background -->
+    <div class="background-container">
+        <div class="gradient-bg"></div>
+        <div class="glass-blur"></div>
+        <div class="glass-blur"></div>
+        <div class="glass-blur"></div>
+    </div>
+    
+    <!-- Floating Elements -->
+    <div class="floating-elements" id="floatingElements"></div>
+
+    <!-- About Toggle Button -->
+    <div class="about-toggle" onclick="toggleAboutPopup()">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+            <path d="M12 17h.01"/>
+        </svg>
+        About
+    </div>
+
+    <!-- About Popup -->
+    <div class="about-popup" id="aboutPopup">
+        <h3>
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                <path d="M12 17h.01"/>
+            </svg>
+            Stopwatch Pro
+        </h3>
+        <p>Precision timing application with millisecond accuracy, designed for athletes and professionals.</p>
+        <ul>
+            <li>High-precision timing</li>
+            <li>Lap time recording</li>
+            <li>Session history storage</li>
+            <li>Responsive design</li>
+            <li>Beautiful animations</li>
+        </ul>
+        
+        <div class="divider"></div>
+        
+        <div class="profile-section">
+            <img src="https://media.licdn.com/dms/image/v2/D5603AQGqOJPiDvjL9A/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1735481327853?e=1741219200&v=beta&t=WE1fkYG7JJ8V3L-Tj1U0dddAk7QQ9tUcKe3KVfQW52M" 
+                 alt="Nivas Alugubelli" 
+                 class="profile-pic">
+            <div class="profile-info">
+                <div class="profile-name">Nivas Alugubelli</div>
+                <div class="profile-title">Full Stack Developer</div>
+            </div>
+        </div>
+        
+        <div class="social-links">
+            <a href="https://www.linkedin.com/in/nivas-alugubelli-94bb9a325?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" target="_blank" class="social-link linkedin-link">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                </svg>
+                LinkedIn
+            </a>
+            <a href="https://github.com/nivas798" target="_blank" class="social-link github-link">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                </svg>
+                GitHub
+            </a>
+            <a href="https://www.instagram.com/__.nivasss04/?__pwa=1" target="_blank" class="social-link instagram-link">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+                </svg>
+                Instagram
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <div class="stopwatch-card">
+            <!-- Header -->
+            <div class="header">
+                <div class="clock-icon">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12,6 12,12 16,14"/>
+                    </svg>
+                </div>
+                <h1 class="title">Stopwatch Pro</h1>
+                <div class="subtitle">Precision Timing Application</div>
+            </div>
+            <div class="divider"></div>
+
+            <!-- Time Display -->
+            <div class="time-display" id="timeDisplay">00:00.00</div>
+            <div class="status" id="statusText">Ready to start</div>
+
+            <!-- Control Buttons -->
+            <div class="controls">
+                <button class="btn btn-start" id="startBtn" onclick="handleStart()">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <polygon points="5,3 19,12 5,21"/>
+                    </svg>
+                    Start
+                </button>
+                <button class="btn btn-pause" id="pauseBtn" onclick="handlePause()" style="display: none;">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <rect x="6" y="4" width="4" height="16"/>
+                        <rect x="14" y="4" width="4" height="16"/>
+                    </svg>
+                    Pause
+                </button>
+                <button class="btn btn-stop" onclick="handleStop()">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    </svg>
+                    Stop
+                </button>
+            </div>
+
+            <!-- Secondary Buttons -->
+            <div class="secondary-controls">
+                <button class="btn btn-lap" id="lapBtn" onclick="handleLap()" disabled>
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"/>
+                        <path d="M8.5 8.5v.01"/>
+                        <path d="M16 15.5v.01"/>
+                        <path d="M12 12v.01"/>
+                        <path d="M11 17v.01"/>
+                        <path d="M7 14v.01"/>
+                    </svg>
+                    Lap
+                </button>
+                <button class="btn btn-reset" id="resetBtn" onclick="handleReset()" disabled>
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <polyline points="1,4 1,10 7,10"/>
+                        <path d="M3.51,15A9,9,0,1 0 6 5.3L3 8"/>
+                        <path d="M12 7v5l4 2"/>
+                    </svg>
+                    Reset
+                </button>
+                <button class="btn btn-history" onclick="toggleHistory()">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M3 3v5h5M3.05 13A9 9 0 1 0 6 5.3L3 8"/>
+                        <path d="M12 7v5l4 2"/>
+                    </svg>
+                    History
+                </button>
+            </div>
+
+            <!-- Lap Times -->
+            <div class="lap-times" id="lapTimesContainer" style="display: none;">
+                <h3 class="lap-title">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12,6 12,12 16,14"/>
+                    </svg>
+                    Lap Times
+                </h3>
+                <div class="lap-list" id="lapList"></div>
+            </div>
+
+            <!-- Session History -->
+            <div class="session-history" id="sessionHistoryContainer" style="display: none;">
+                <h3 class="lap-title">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M3 3v5h5M3.05 13A9 9 0 1 0 6 5.3L3 8"/>
+                        <path d="M12 7v5l4 2"/>
+                    </svg>
+                    Previous Sessions
+                </h3>
+                <div id="sessionList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Stopwatch variables
+        let startTime;
+        let elapsedTime = 0;
+        let timerInterval;
+        let isRunning = false;
+        let lapTimes = [];
+        let sessions = JSON.parse(localStorage.getItem('stopwatchSessions')) || [];
+
+        // DOM elements
+        const timeDisplay = document.getElementById('timeDisplay');
+        const statusText = document.getElementById('statusText');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const lapBtn = document.getElementById('lapBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const lapList = document.getElementById('lapList');
+        const lapTimesContainer = document.getElementById('lapTimesContainer');
+        const sessionList = document.getElementById('sessionList');
+        const sessionHistoryContainer = document.getElementById('sessionHistoryContainer');
+
+        // Format time (mm:ss.ms)
+        function formatTime(time) {
+            let date = new Date(time);
+            let minutes = date.getUTCMinutes();
+            let seconds = date.getUTCSeconds();
+            let milliseconds = Math.floor(date.getUTCMilliseconds() / 10);
+
+            return (
+                (minutes > 9 ? minutes : "0" + minutes) + ":" +
+                (seconds > 9 ? seconds : "0" + seconds) + "." +
+                (milliseconds > 9 ? milliseconds : "0" + milliseconds)
+            );
+        }
+
+        // Update the display
+        function updateDisplay() {
+            timeDisplay.textContent = formatTime(elapsedTime);
+        }
+
+        // Start the stopwatch
+        function handleStart() {
+            if (!isRunning) {
+                startTime = Date.now() - elapsedTime;
+                timerInterval = setInterval(function() {
+                    elapsedTime = Date.now() - startTime;
+                    updateDisplay();
+                }, 10);
+                
+                isRunning = true;
+                startBtn.style.display = 'none';
+                pauseBtn.style.display = 'flex';
+                lapBtn.disabled = false;
+                resetBtn.disabled = true;
+                statusText.textContent = "Running";
+                timeDisplay.classList.add('running');
+            }
+        }
+
+        // Pause the stopwatch
+        function handlePause() {
+            if (isRunning) {
+                clearInterval(timerInterval);
+                isRunning = false;
+                startBtn.style.display = 'flex';
+                pauseBtn.style.display = 'none';
+                statusText.textContent = "Paused";
+                timeDisplay.classList.remove('running');
+            }
+        }
+
+        // Stop the stopwatch and save session
+        function handleStop() {
+            handlePause();
+            resetBtn.disabled = false;
+            statusText.textContent = "Stopped";
+            
+            // Save session if there's any elapsed time
+            if (elapsedTime > 0) {
+                const session = {
+                    date: new Date().toLocaleString(),
+                    duration: elapsedTime,
+                    laps: [...lapTimes]
+                };
+                
+                sessions.unshift(session);
+                localStorage.setItem('stopwatchSessions', JSON.stringify(sessions));
+                updateSessionHistory();
+            }
+        }
+
+        // Reset the stopwatch
+        function handleReset() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            elapsedTime = 0;
+            lapTimes = [];
+            updateDisplay();
+            lapList.innerHTML = '';
+            lapTimesContainer.style.display = 'none';
+            startBtn.style.display = 'flex';
+            pauseBtn.style.display = 'none';
+            lapBtn.disabled = true;
+            resetBtn.disabled = true;
+            statusText.textContent = "Ready to start";
+            timeDisplay.classList.remove('running');
+        }
+
+        // Record a lap time
+        function handleLap() {
+            if (isRunning) {
+                const lapTime = {
+                    number: lapTimes.length + 1,
+                    time: elapsedTime
+                };
+                
+                lapTimes.unshift(lapTime);
+                
+                const lapItem = document.createElement('div');
+                lapItem.className = 'lap-item fade-in';
+                lapItem.innerHTML = `
+                    <span class="lap-number">Lap ${lapTime.number}</span>
+                    <span class="lap-time">+${formatTime(lapTime.time - (lapTimes[1]?.time || 0))}</span>
+                    <span class="lap-time">${formatTime(lapTime.time)}</span>
+                `;
+                
+                lapList.prepend(lapItem);
+                lapTimesContainer.style.display = 'block';
+            }
+        }
+
+        // Toggle session history visibility
+        function toggleHistory() {
+            if (sessionHistoryContainer.style.display === 'none') {
+                sessionHistoryContainer.style.display = 'block';
+                updateSessionHistory();
+            } else {
+                sessionHistoryContainer.style.display = 'none';
+            }
+        }
+
+        // Update session history display
+        function updateSessionHistory() {
+            sessionList.innerHTML = '';
+            
+            if (sessions.length === 0) {
+                sessionList.innerHTML = '<div style="color: var(--text-secondary); text-align: center; padding: 16px;">No previous sessions</div>';
+                return;
+            }
+            
+            sessions.forEach(session => {
+                const sessionItem = document.createElement('div');
+                sessionItem.className = 'session-item fade-in';
+                
+                const lapsText = session.laps.length > 0 
+                    ? `${session.laps.length} lap${session.laps.length !== 1 ? 's' : ''} recorded`
+                    : 'No laps recorded';
+                
+                sessionItem.innerHTML = `
+                    <div class="session-header">
+                        <span class="session-date">${session.date}</span>
+                        <span class="session-duration">${formatTime(session.duration)}</span>
+                    </div>
+                    <div class="session-laps">${lapsText}</div>
+                `;
+                
+                sessionList.appendChild(sessionItem);
+            });
+        }
+
+        // Create floating elements
+        function createFloatingElements() {
+            const container = document.getElementById('floatingElements');
+            
+            for (let i = 0; i < 10; i++) {
+                const element = document.createElement('div');
+                element.className = 'floating-element';
+                element.style.left = Math.random() * 100 + '%';
+                element.style.top = Math.random() * 100 + '%';
+                element.style.width = Math.random() * 20 + 10 + 'px';
+                element.style.height = element.style.width;
+                element.style.animationDuration = (Math.random() * 15 + 10) + 's';
+                element.style.animationDelay = (Math.random() * 5) + 's';
+                container.appendChild(element);
+            }
+        }
+
+        // Toggle about popup
+        function toggleAboutPopup() {
+            const popup = document.getElementById('aboutPopup');
+            popup.classList.toggle('show');
+        }
+
+        // Close popup when clicking outside
+        document.addEventListener('click', function(event) {
+            const popup = document.getElementById('aboutPopup');
+            const toggle = document.querySelector('.about-toggle');
+            
+            if (!popup.contains(event.target) && !toggle.contains(event.target)) {
+                popup.classList.remove('show');
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDisplay();
+            createFloatingElements();
+        });
+    </script>
+</body>
+</html>
